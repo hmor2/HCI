@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro mejorado</title>
+<style>
+  * { box-sizing: border-box; }
+  body { max-width: 1115px; margin: 28px auto; padding: 0 20px; color: #333; background: #fff; font: 17px/1.5 Arial, sans-serif; }
+  h1, fieldset, .note, .policy { text-align: center; }
+  h1 { margin: 0; font-size: 27px; }
+  .note { color: #595959; font-size: 14px; }
+  .fields, .phone { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 25px; }
+  .wide { grid-column: 1 / -1; }
+  .phone { grid-template-columns: 1fr 2.7fr 1fr; }
+  label { display: block; font-size: 15px; font-weight: bold; }
+  input:not([type=radio]), select, button { width: 100%; padding: 12px; border: 1px solid #767676; border-radius: 6px; font: inherit; }
+  input:not([type=radio]), select { background: #eee; color: #333; }
+  input::placeholder { color: #595959; opacity: 1; }
+  small { display: block; color: #a51d27; }
+  [aria-invalid=true] { border-color: #a51d27 !important; background: #fff5f5 !important; }
+  :focus-visible { outline: 3px solid #542b93; outline-offset: 2px; }
+  fieldset { margin: 30px 0 24px; padding: 0; border: 0; }
+  legend { color: #6c3bb9; font-weight: bold; }
+  fieldset label { padding: 5px; font: inherit; }
+  input[type=radio] { accent-color: #6c3bb9; }
+  button { border: 0; background: #6c3bb9; color: #fff; cursor: pointer; }
+  .policy { padding: 6px; border: 1px solid #ccc; border-radius: 14px; background: #f8f8f8; }
+  a { color: #245f9c; }
+  @media (max-width: 640px) { .fields, .phone { grid-template-columns: 1fr; } }
+</style>
+<main>
+  <h1>¡Regístrate rápidamente!</h1>
+  <p class="note">Todos los campos son obligatorios, excepto la extensión.</p>
+  <form novalidate>
+    <div class="fields">
+      <div><label for="entity">Tipo de entidad</label><select id="entity" required aria-describedby="e1"><option value="">Selecciona una opción</option><option>Académica</option><option>Corporativa</option><option>Distribuidor (Reseller)</option><option>Estudiante</option><option>Gobierno</option><option>Otros</option><option>Personal</option></select><small id="e1" aria-live="polite"></small></div>
+      <div><label for="company">Entidad / Empresa</label><input id="company" autocomplete="organization" required aria-describedby="e2"><small id="e2" aria-live="polite"></small></div>
+      <div><label for="name">Nombre</label><input id="name" autocomplete="given-name" required aria-describedby="e3"><small id="e3" aria-live="polite"></small></div>
+      <div><label for="surname">Apellido</label><input id="surname" autocomplete="family-name" required aria-describedby="e4"><small id="e4" aria-live="polite"></small></div>
+      <div class="wide"><label for="city">Ciudad</label><input id="city" autocomplete="address-level2" required aria-describedby="e5"><small id="e5" aria-live="polite"></small></div>
+      <div class="phone wide">
+        <div><label for="code">Indicativo del país</label><input id="code" type="tel" autocomplete="tel-country-code" placeholder="Ej. +52" required pattern="\+?[1-9][0-9]{0,3}" data-error="Usa de 1 a 4 dígitos, con + opcional. Ejemplo: +52." aria-describedby="e6"><small id="e6" aria-live="polite"></small></div>
+        <div><label for="phone">Teléfono / Celular</label><input id="phone" type="tel" autocomplete="tel-national" required pattern="(?:[0-9][ \(\)\-]*){6,14}" data-error="Usa de 6 a 14 dígitos, sin indicativo del país. Puedes incluir espacios o guiones." aria-describedby="e7"><small id="e7" aria-live="polite"></small></div>
+        <div><label for="extension">Extensión (opcional)</label><input id="extension" type="tel" autocomplete="tel-extension" pattern="[0-9]{1,8}" data-error="Usa hasta 8 dígitos o deja el campo vacío." aria-describedby="e8"><small id="e8" aria-live="polite"></small></div>
+      </div>
+      <div class="wide"><label for="email">Correo electrónico</label><input id="email" type="email" autocomplete="email" placeholder="Ej. nombre@empresa.com" required data-error="Escribe un correo válido. Ejemplo: nombre@empresa.com." aria-describedby="e9"><small id="e9" aria-live="polite"></small></div>
+    </div>
+    <fieldset>
+      <legend>¿Deseas recibir correos con información de los productos del portafolio de tu interés?</legend>
+      <label><input type="radio" name="marketing" value="yes"> Sí, gracias</label>
+      <label><input type="radio" name="marketing" value="no" checked> No, gracias</label>
+    </fieldset>
+    <button>Registrar información</button>
+    <p id="result" role="status"></p>
+  </form>
+  <p class="policy">Conozca nuestras políticas de tratamiento de datos <a href="https://www.software-shop.com/contactos/general-data-policy">aquí</a></p>
+  <p class="note">Demostración. No envía ni guarda datos.</p>
+</main>
+<script>
+  const form = document.querySelector('form'), result = document.querySelector('#result');
+  const fields = [...form.querySelectorAll('input:not([type=radio]), select')];
+  function validate(field) {
+    const error = field.required && !field.value.trim() ? 'Completa este campo.' : field.validity.valid ? '' : field.dataset.error;
+    field.nextElementSibling.textContent = error;
+    field.setAttribute('aria-invalid', Boolean(error));
+  }
+  form.oninput = ({ target }) => {
+    result.textContent = '';
+    if (target.getAttribute('aria-invalid') === 'true') validate(target);
+  };
+  form.onsubmit = event => {
+    event.preventDefault();
+    fields.forEach(validate);
+    const invalid = form.querySelector('[aria-invalid=true]');
+    if (invalid) invalid.focus();
+    result.textContent = invalid ? '' : 'Datos válidos. Demostración completada; no se envió información.';
+  };
+</script>
+</html>
